@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>King's Innovation Lab - AR</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; background-color: #000; }
+    #splash-screen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #111; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 99999;
+      color: #fff; text-align: center; padding: 20px; box-sizing: border-box;
+    }
+    .title { font-size: 22px; font-weight: bold; margin-bottom: 12px; color: #ffd700; }
+    .subtitle { font-size: 14px; color: #ccc; margin-bottom: 25px; line-height: 1.5; }
+    .start-btn {
+      background: #ffd700; color: #000; border: none; padding: 14px 32px;
+      font-size: 16px; font-weight: bold; border-radius: 50px; cursor: pointer;
+    }
+    #guide-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      display: none; justify-content: center; align-items: center;
+      pointer-events: none; z-index: 1000;
+    }
+    .target-box {
+      width: 70vw; height: 70vw; max-width: 300px; max-height: 300px;
+      border: 2px dashed rgba(255, 215, 0, 0.8); border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="splash-screen">
+    <div class="title">King's Innovation Lab</div>
+    <div class="subtitle">แตะปุ่มด้านล่างเพื่อเปิดกล้องและระบบเสียง</div>
+    <button class="start-btn" id="startBtn">เริ่มส่องภาพ 🔊</button>
+  </div>
+
+  <div id="guide-overlay">
+    <div class="target-box"></div>
+  </div>
+
+  <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; uiLoading: no; uiError: no;" 
+           color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
+           vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-assets>
+      <video id="kingVideo" src="./song.mp4" preload="auto" loop="true" playsinline webkit-playsinline></video>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-video src="#kingVideo" position="0 0 0" width="1" height="0.5625"></a-video>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const splashScreen = document.getElementById('splash-screen');
+    const guideOverlay = document.getElementById('guide-overlay');
+    const video = document.getElementById('kingVideo');
+    const sceneEl = document.querySelector('a-scene');
+
+    startBtn.addEventListener('click', () => {
+      video.muted = false;
+      video.play().then(() => { video.pause(); }).catch(e => console.log(e));
+      splashScreen.style.display = 'none';
+      guideOverlay.style.display = 'flex';
+      sceneEl.systems["mindar-image-system"].start();
+    });
+
+    sceneEl.addEventListener("targetFound", () => {
+      guideOverlay.style.display = 'none';
+      video.play();
+    });
+
+    sceneEl.addEventListener("targetLost", () => {
+      guideOverlay.style.display = 'flex';
+      video.pause();
+    });
+  </script>
+</body>
+</html>
